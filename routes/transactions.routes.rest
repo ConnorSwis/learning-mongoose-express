@@ -1,0 +1,25 @@
+// Create transaction
+GET http://localhost:3000/transactions/create
+
+###
+
+// Delete
+DELETE http://localhost:3000/transactions/delete/638e35cdd377c4c55779b14b HTTP/1.1
+
+###
+
+// Get by seller
+GET http://localhost:3000/transactions/seller/Josh
+
+###
+
+// Create Transaction
+POST http://localhost:3000/transactions/save HTTP/1.1
+content-type: application/json
+
+{
+    "seller": "Josh",
+    "amount": 35,
+    "credit": true,
+    "comment": "i like cheese"
+}
