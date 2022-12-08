@@ -1,25 +1,47 @@
+@baseUrl = http://localhost:3000/transactions
+
 // Create transaction
-GET http://localhost:3000/transactions/create
+GET {{baseUrl}}
 
 ###
 
 // Delete
-DELETE http://localhost:3000/transactions/delete/638e35cdd377c4c55779b14b HTTP/1.1
+DELETE {{baseUrl}}/delete/63916e0f4a64838c322013a8 HTTP/1.1
 
 ###
 
 // Get by seller
-GET http://localhost:3000/transactions/seller/Josh
+GET {{baseUrl}}/seller/Connor HTTP/1.1
+
+###
+
+GET {{baseUrl}}/seller/NOT CONNOR HTTP/1.1
 
 ###
 
 // Create Transaction
-POST http://localhost:3000/transactions/save HTTP/1.1
+POST {{baseUrl}}/save HTTP/1.1
 content-type: application/json
 
 {
-    "seller": "Josh",
-    "amount": 35,
+    "seller": "Connor",
+    "amount": "35",
     "credit": true,
-    "comment": "i like cheese"
+    "comment": "pancakes"
+}
+
+###
+
+// Get credit or debit
+GET {{baseUrl}}/balance/debit HTTP/1.1
+
+###
+
+// Update Transaction
+PATCH {{baseUrl}}/update/6390d8b2e3d2d33de81c9e48 HTTP/1.1
+Content-Type: application/json
+
+{
+    "seller": "NOT CONNOR",
+    "comment": "ooga booga"
 }

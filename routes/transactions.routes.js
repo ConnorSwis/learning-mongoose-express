@@ -4,77 +4,86 @@ const { Transaction } = require('../models/Transaction');
 
 
 // Get All
-router.get('/', async (req, res) => {
-    const trans = Transaction.create({
-        seller: 'Connor',
-        amount: 35,
-        comment: 'ooga booga',
-    });
-    if (trans) {
-        res.status(200).json('ooga booga');
-    } else {
-        res.status(404).json('booga ooga');
-    };
+router.get('/', async (_, res) => {
+    await Transaction.find().then(
+        transactions => {
+            return (
+                transactions ? 
+                    res.status(200).json( transactions ) :
+                    res.status(404).json({ 'message': 'Could not get transactions.' })
+            );
+        },
+        reason => {
+            return res.status(500).json({ 'message': reason.message });
+        }
+    );
 });
 
 // Get Transactions from seller
 router.get('/seller/:seller', async (req, res) => {
     const seller = req.params.seller;
-    const transaction = await Transaction.find({ seller: seller }, null, null)
+    await Transaction.find({ seller: seller }, null, null)
     .then(
-        (docs) => {
+        docs => {
             return res.status(200).json( docs );
         },
-        (err) => {
+        err => {
             return res.status(404).json({ 'message': `Could not find transactions from seller ${seller}` });
         }
     );
-    // .then( (error) => {
-    //     if (error) {
-            // return res.status(404).json({ 'message': `Could not find transactions of seller: ${req.params.seller}`});
-    //     }
-    // });
-
-    // if ( transaction ) {
-    //     return res.status(200).json( transaction );
-    // } else {
-    //     return res.status(404).json( transaction );
-    // };
 });
 
-// Create Transaction
-router.get('/create', async (req, res) => {
-    const trans = await Transaction.create({
-        seller: 'Connor',
-        amount: 35,
-        credit: true,
-        comment: 'ooga booga',
-    });
-    await trans.save();
-    res.status(201).json('created');
-})
-
-router.post('/save', async (req, res) => {
-    const trans = await Transaction.create( req.body )
+// Get Transactions from credit
+router.get('/balance/:credit', async (req, res) => {
+    let credit = req.params.credit.toLowerCase();
+    if (['credit', 'debit'].includes(credit)) {
+        credit = (credit === 'credit');
+    } else {
+        return res.status(404).json({'message': `Acceptable input: [credit, debit] not ${credit}` });
+    }
+    await Transaction.find({ credit: credit }, null, null)
     .then(
-        () => {
-            return res.status(201).json({ 'message': 'Saved' });
+        transaction => {
+            return res.status(200).json( transaction );
         },
-        (reason) =>{
-            return res.status(404).json({ 'message': 'Could not save transaction.' });
+        reason => {
+            return res.status(500).json({ 'message': reason.message });
         }
     );
 });
 
-router.delete('/delete/:id', async (req, res) => {
-    const { id } = req.params;
-    const trans = Transaction.findByIdAndDelete(id, null, (err, docs) => {
-        if(err) {
-            return res.status(404).json(`Could not find transaction id: ${id}`);
-        };
-    });
-    
+router.post('/save', async (req, res) => {
+    await Transaction.create( req.body )
+    .then(
+        transaction => {
+            return res.status(201).json( transaction );
+        },
+        reason =>{
+            return res.status(500).json({ 'message': reason.message });
+        }
+    );
+});
 
-})
+router.delete('/delete/:id', (req, res) => {
+    Transaction.findByIdAndDelete(req.params.id, null, (err, docs) => {
+        if (err) return res.status(500).json({ 'message': err.message });
+        return (
+            docs ?
+                res.status(201).json( docs ) :
+                res.status(404).json({ 'message': `Could not find transaction id: ${id}` })
+        );
+    });
+});
+
+router.patch('/update/:id', async (req, res) => {
+    Transaction.findByIdAndUpdate(req.params.id, req.body, null, (err, docs) => {
+        if (err) return res.status(500).json({ 'message': err.message });
+        return (
+            docs ?
+                res.status(201).json( docs ) :
+                res.status(404).json({ 'message': `Could not find transaction id: ${id}` })
+        );
+    })
+});
 
 module.exports = router;
